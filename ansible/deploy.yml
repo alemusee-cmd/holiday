@@ -1,0 +1,24 @@
+- hosts: webservers
+  connection: local
+  vars:
+    image_name: "wubdigitalinfo/holiday-app"
+  tasks:
+    - name: Pull latest Docker image
+      docker_image:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag | default('latest') }}"
+        source: pull
+
+    - name: Stop and remove old container if it exists
+      docker_container:
+        name: holiday-container
+        state: absent
+
+    - name: Run new container
+      docker_container:
+        name: holiday-container
+        image: "{{ image_name }}:{{ image_tag | default('latest') }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "3000:3000"
