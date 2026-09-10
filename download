@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Holiday Events</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Nunito+Sans:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-glow" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="#top">
+          <span class="brand-mark" aria-hidden="true"></span>
+          Holiday Events
+        </a>
+        <nav class="nav" aria-label="Main">
+          <a href="#events">Events</a>
+          <a href="#about">About</a>
+          <button class="nav-cta" type="button" id="header-register">
+            Register
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container">
+          <p class="eyebrow">Company gathering portal</p>
+          <h1>Holiday Events</h1>
+          <p class="subtitle">Find your next company event.</p>
+          <a class="hero-link" href="#events">Browse upcoming events</a>
+        </div>
+      </section>
+
+      <section class="events-section" id="events">
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">This season</p>
+              <h2>Upcoming events</h2>
+            </div>
+            <div class="filters" id="filters" role="tablist" aria-label="Event categories"></div>
+          </div>
+          <p class="status-line" id="events-status" hidden></p>
+          <div class="event-grid" id="event-grid"></div>
+        </div>
+      </section>
+
+      <section class="about-section" id="about">
+        <div class="container about-grid">
+          <div>
+            <p class="eyebrow">How it works</p>
+            <h2>Pick an event. Save a spot.</h2>
+            <p>
+              Holiday Events is the internal portal for company gatherings.
+              Browse what is coming up, check remaining spots, and register in
+              a few seconds.
+            </p>
+          </div>
+          <ol class="steps">
+            <li>
+              <strong>Choose an event</strong>
+              Find dinners, parties, trips, and team nights.
+            </li>
+            <li>
+              <strong>Register your name</strong>
+              We only need your name and work email.
+            </li>
+            <li>
+              <strong>Show up</strong>
+              Your spot is held until the event is full.
+            </li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>Holiday Events</p>
+        <p>Internal company portal</p>
+      </div>
+    </footer>
+
+    <div class="modal" id="register-modal" hidden>
+      <div class="modal-backdrop" data-close-modal></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" type="button" aria-label="Close registration form" data-close-modal>
+          ×
+        </button>
+        <div id="modal-form-view">
+          <p class="eyebrow">Save your spot</p>
+          <h2 id="modal-title">Register for an event</h2>
+          <form id="register-form">
+            <label>
+              Full Name
+              <input type="text" name="name" autocomplete="name" required />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="email" required />
+            </label>
+            <label>
+              Event
+              <select name="eventId" id="event-select" required></select>
+            </label>
+            <p class="form-error" id="form-error" hidden></p>
+            <button class="primary-btn" type="submit">Confirm registration</button>
+          </form>
+        </div>
+        <div class="success-view" id="modal-success-view" hidden>
+          <div class="success-icon" aria-hidden="true">✓</div>
+          <h2>You're registered! See you at the event.</h2>
+          <p id="success-detail"></p>
+          <button class="primary-btn" type="button" data-close-modal>Back to events</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
