@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/alemusee-cmd/holiday/issues"
   },
-  "homepage": "https://github.com/alemusee-cmd/holiday#readme"
+  "homepage": "https://github.com/alemusee-cmd/holiday#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "init": "^0.1.2"
+  }
 }

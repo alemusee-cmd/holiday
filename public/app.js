@@ -1,74 +1,192 @@
-[
-  {
-    "id": 1,
-    "name": "Holiday Dinner",
-    "date": "December 18, 2026",
-    "location": "Grand Hall, HQ",
-    "description": "A sit-down dinner with seasonal courses, speeches, and a toast to the year.",
-    "spots": 24,
-    "category": "Dining"
-  },
-  {
-    "id": 2,
-    "name": "Team BBQ",
-    "date": "September 26, 2026",
-    "location": "Riverside Park",
-    "description": "Grills, lawn games, and an easy afternoon outdoors with your team.",
-    "spots": 40,
-    "category": "Outdoor"
-  },
-  {
-    "id": 3,
-    "name": "Family Day",
-    "date": "October 11, 2026",
-    "location": "Lakeside Pavilion",
-    "description": "Bring your family for picnic food, crafts, and a relaxed day by the water.",
-    "spots": 60,
-    "category": "Family"
-  },
-  {
-    "id": 4,
-    "name": "Gaming Night",
-    "date": "October 24, 2026",
-    "location": "Rec Room, Building B",
-    "description": "Consoles, board games, snacks, and friendly competition after hours.",
-    "spots": 16,
-    "category": "Social"
-  },
-  {
-    "id": 5,
-    "name": "Holiday Party",
-    "date": "December 11, 2026",
-    "location": "The Atrium",
-    "description": "Music, lights, and a festive open-house celebration for the whole company.",
-    "spots": 80,
-    "category": "Celebration"
-  },
-  {
-    "id": 6,
-    "name": "Outdoor Trip",
-    "date": "November 7, 2026",
-    "location": "Pine Ridge Trails",
-    "description": "A guided day hike with packed lunches, scenic views, and fresh air.",
-    "spots": 18,
-    "category": "Adventure"
-  },
-  {
-    "id": 7,
-    "name": "Cookie Bake-Off",
-    "date": "December 4, 2026",
-    "location": "Kitchen Studio",
-    "description": "Teams bake, decorate, and taste-test cookies. Prizes for flavor and flair.",
-    "spots": 12,
-    "category": "Dining"
-  },
-  {
-    "id": 8,
-    "name": "New Year Toast",
-    "date": "December 31, 2026",
-    "location": "Rooftop Lounge",
-    "description": "Sparkling drinks, skyline views, and a countdown with colleagues.",
-    "spots": 35,
-    "category": "Celebration"
+const eventGrid = document.getElementById("event-grid");
+const eventsStatus = document.getElementById("events-status");
+const filtersEl = document.getElementById("filters");
+const modal = document.getElementById("register-modal");
+const form = document.getElementById("register-form");
+const eventSelect = document.getElementById("event-select");
+const formError = document.getElementById("form-error");
+const formView = document.getElementById("modal-form-view");
+const successView = document.getElementById("modal-success-view");
+const successDetail = document.getElementById("success-detail");
+
+let events = [];
+let activeCategory = "All";
+const originalSpots = {};
+
+function setStatus(message) {
+  eventsStatus.hidden = !message;
+  eventsStatus.textContent = message || "";
+}
+
+function spotsLabel(spots) {
+  if (spots <= 0) {
+    return "No spots left";
   }
-]
+
+  return spots === 1 ? "1 spot left" : `${spots} spots left`;
+}
+
+function spotsWidth(event) {
+  const total = originalSpots[event.id] || event.spots || 1;
+  return `${Math.max(0, Math.min(100, (event.spots / total) * 100))}%`;
+}
+
+function renderFilters() {
+  const categories = ["All", ...new Set(events.map((event) => event.category))];
+  filtersEl.innerHTML = "";
+
+  categories.forEach((category) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className =
+      "filter-btn" + (category === activeCategory ? " is-active" : "");
+    button.textContent = category;
+    button.addEventListener("click", () => {
+      activeCategory = category;
+      renderFilters();
+      renderEvents();
+    });
+    filtersEl.appendChild(button);
+  });
+}
+
+function renderEvents() {
+  const visibleEvents =
+    activeCategory === "All"
+      ? events
+      : events.filter((event) => event.category === activeCategory);
+
+  eventGrid.innerHTML = "";
+
+  visibleEvents.forEach((event) => {
+    const card = document.createElement("article");
+    card.className = "event-card";
+    card.innerHTML = `
+      <span class="category">${event.category}</span>
+      <h3>${event.name}</h3>
+      <div class="meta">
+        <span>${event.date}</span>
+        <span>${event.location}</span>
+      </div>
+      <p>${event.description}</p>
+      <div class="spots">
+        <span>${spotsLabel(event.spots)}</span>
+      </div>
+      <div class="spots-bar" aria-hidden="true"><span style="width: ${spotsWidth(event)}"></span></div>
+      <button class="card-btn" type="button" ${event.spots <= 0 ? "disabled" : ""}>
+        ${event.spots <= 0 ? "Event full" : "Register"}
+      </button>
+    `;
+
+    const button = card.querySelector(".card-btn");
+    button.addEventListener("click", () => openModal(event.id));
+    eventGrid.appendChild(card);
+  });
+}
+
+function fillEventSelect(selectedId) {
+  eventSelect.innerHTML = "";
+
+  events.forEach((event) => {
+    const option = document.createElement("option");
+    option.value = String(event.id);
+    option.textContent = event.spots > 0 ? event.name : `${event.name} (full)`;
+    option.disabled = event.spots <= 0;
+    option.selected = event.id === selectedId;
+    eventSelect.appendChild(option);
+  });
+}
+
+function openModal(eventId) {
+  const selectedId = eventId || events.find((event) => event.spots > 0)?.id;
+  form.reset();
+  formError.hidden = true;
+  formView.hidden = false;
+  successView.hidden = true;
+  fillEventSelect(selectedId);
+  modal.hidden = false;
+  form.elements.name.focus();
+}
+
+function closeModal() {
+  modal.hidden = true;
+}
+
+async function loadEvents() {
+  setStatus("Loading events...");
+
+  try {
+    const response = await fetch("/api/events");
+    if (!response.ok) {
+      throw new Error("Could not load events");
+    }
+
+    events = await response.json();
+    events.forEach((event) => {
+      if (originalSpots[event.id] === undefined) {
+        originalSpots[event.id] = event.spots;
+      }
+    });
+
+    setStatus("");
+    renderFilters();
+    renderEvents();
+  } catch (error) {
+    setStatus("Events could not be loaded. Please refresh the page.");
+  }
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  formError.hidden = true;
+
+  const payload = {
+    name: form.elements.name.value.trim(),
+    email: form.elements.email.value.trim(),
+    eventId: Number(form.elements.eventId.value),
+  };
+
+  try {
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      formError.hidden = false;
+      formError.textContent = data.error || "Registration failed.";
+      return;
+    }
+
+    successDetail.textContent = data.registration
+      ? `${data.registration.name} is on the list for ${data.registration.eventName}.`
+      : "";
+    formView.hidden = true;
+    successView.hidden = false;
+    await loadEvents();
+  } catch (error) {
+    formError.hidden = false;
+    formError.textContent = "Could not reach the server. Please try again.";
+  }
+});
+
+document
+  .getElementById("header-register")
+  .addEventListener("click", () => openModal());
+
+document.querySelectorAll("[data-close-modal]").forEach((element) => {
+  element.addEventListener("click", closeModal);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !modal.hidden) {
+    closeModal();
+  }
+});
+
+loadEvents();

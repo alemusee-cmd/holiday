@@ -1,5 +1,5 @@
 #  גרסת Node.js רצויה (נשתמש ב-LTS יציבה)
-FROM node:18-alpine
+FROM node:20-alpine
 
 # יצירת תיקיית עבודה בתוך הקונטיינר
 WORKDIR /app
