@@ -17,8 +17,8 @@ pipeline {
 
         stage('Install & Test') {
             steps {
-                sh 'npm install'
-                // אפשר להוסיף npm test אם יש בדיקות מוגדרות ב-package.json
+                // הרצת npm install בתוך קונטיינר Node מבודד מבלי להתקין כלים על Jenkins
+                sh 'docker run --rm -v ${WORKSPACE}:/app -w /app node:18 npm install'
             }
         }
 
@@ -46,7 +46,6 @@ pipeline {
                 expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master' }
             }
             steps {
-                // הרצת ה-Playbook של Ansible כדי לעדכן את השרת אוטומטית
                 sh "ansible-playbook -i ansible/inventory ansible/deploy.yml --extra-vars 'image_tag=${env.BUILD_NUMBER}'"
             }
         }
