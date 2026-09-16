@@ -22,13 +22,13 @@ pipeline {
                     sh '''
                         export NODE_VERSION=18.16.0
                         export PATH=$WORKSPACE/node-v$NODE_VERSION-linux-x64/bin:$PATH
-                        
+
                         if [ ! -d "node-v$NODE_VERSION-linux-x64" ]; then
                             echo "Downloading Node.js locally..."
                             curl -O https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.gz
                             tar -xzf node-v$NODE_VERSION-linux-x64.tar.gz
                         fi
-                        
+
                         npm install
                     '''
                 }
@@ -50,6 +50,7 @@ pipeline {
                     sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
                     sh 'docker push $IMAGE_NAME:$BUILD_NUMBER'
                     sh 'docker push $IMAGE_NAME:latest'
+                }
             }
         }
 
@@ -63,7 +64,7 @@ pipeline {
             }
         }
 
-                        stage('Health Check') {
+        stage('Health Check') {
             when {
                 expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master' }
             }
@@ -85,11 +86,11 @@ pipeline {
     }
 
     post {
-        success { 
-            echo "Pipeline succeeded on branch ${env.BRANCH_NAME}" 
+        success {
+            echo "Pipeline succeeded on branch ${env.BRANCH_NAME}"
         }
-        failure { 
-            echo "Pipeline failed on branch ${env.BRANCH_NAME}" 
+        failure {
+            echo "Pipeline failed on branch ${env.BRANCH_NAME}"
         }
     }
 }
