@@ -17,8 +17,21 @@ pipeline {
 
         stage('Install & Test') {
             steps {
-                // הרצת npm install בתוך קונטיינר Node מבודד מבלי להתקין כלים על Jenkins
-                sh 'docker run --rm -v ${WORKSPACE}:/app -w /app node:18 npm install'
+                script {
+                    // הורדה והפעלה מקומית של Node.js בתוך ה-Workspace (ללא פגיעה באבטחת המערכת או צורך ב-Root)
+                    sh '''
+                        export NODE_VERSION=18.16.0
+                        export PATH=$WORKSPACE/node-v$NODE_VERSION-linux-x64/bin:$PATH
+                        
+                        if [ ! -d "node-v$NODE_VERSION-linux-x64" ]; then
+                            echo "Downloading Node.js locally..."
+                            curl -O https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.gz
+                            tar -xzf node-v$NODE_VERSION-linux-x64.tar.gz
+                        fi
+                        
+                        npm install
+                    '''
+                }
             }
         }
 
@@ -46,6 +59,7 @@ pipeline {
                 expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master' }
             }
             steps {
+                // הרצת ה-Playbook של Ansible לעדכון אוטומטי של השרת
                 sh "ansible-playbook -i ansible/inventory ansible/deploy.yml --extra-vars 'image_tag=${env.BUILD_NUMBER}'"
             }
         }
