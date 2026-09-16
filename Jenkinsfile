@@ -53,6 +53,25 @@ pipeline {
                 }
             }
         }
+                stage('Health Check') {
+            when {
+                expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master' }
+            }
+            steps {
+                script {
+                    def response = sh(
+                        script: "ssh cs.humble-chainsaw-4j9rjw79575wf7pp5.main curl -s http://localhost:3000/health",
+                        returnStdout: true
+                    ).trim()
+                    echo "Health check response: ${response}"
+
+                    if (!response.contains('"status":"healthy"')) {
+                        error("Health check failed! App is not healthy on target server.")
+                    }
+                    echo "Health check passed - application is running correctly."
+                }
+            }
+        }
 
         stage('Deploy with Ansible') {
             when {
