@@ -53,7 +53,18 @@ pipeline {
                 }
             }
         }
-                stage('Health Check') {
+
+        stage('Deploy with Ansible') {
+            when {
+                expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master' }
+            }
+            steps {
+                // הרצת ה-Playbook של Ansible לעדכון אוטומטי של השרת
+                sh "ansible-playbook -i ansible/inventory ansible/deploy.yml --extra-vars 'image_tag=${env.BUILD_NUMBER}'"
+            }
+        }
+
+                        stage('Health Check') {
             when {
                 expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master' }
             }
@@ -70,16 +81,6 @@ pipeline {
                     }
                     echo "Health check passed - application is running correctly."
                 }
-            }
-        }
-
-        stage('Deploy with Ansible') {
-            when {
-                expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master' }
-            }
-            steps {
-                // הרצת ה-Playbook של Ansible לעדכון אוטומטי של השרת
-                sh "ansible-playbook -i ansible/inventory ansible/deploy.yml --extra-vars 'image_tag=${env.BUILD_NUMBER}'"
             }
         }
     }
