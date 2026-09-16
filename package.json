@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/alemusee-cmd/holiday#readme",
   "dependencies": {
-    "express": "^5.2.1",
-    "init": "^0.1.2"
+    "express": "^5.2.1"
   }
 }
