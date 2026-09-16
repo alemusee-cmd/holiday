@@ -1,2 +1,2 @@
 [webservers]
-localhost ansible_connection=local
+cs.humble-chainsaw-4j9rjw79575wf7pp5.main

@@ -1,5 +1,4 @@
 - hosts: webservers
-  connection: local
   vars:
     image_name: "wubdigitalinfo/holiday-app"
   tasks:
