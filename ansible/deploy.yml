@@ -2,18 +2,6 @@
   vars:
     image_name: "wubdigitalinfo/holiday-app"
   tasks:
-    - name: Get currently running image tag (for rollback)
-      shell: |
-        docker inspect --format '{% raw %}{{.Config.Image}}{% endraw %}' holiday-container 2>/dev/null || echo "none"
-      register: current_image
-      ignore_errors: true
-
-    - name: Save current tag to file for potential rollback
-      copy:
-        content: "{{ current_image.stdout | default('none') }}"
-        dest: /tmp/last_good_image.txt
-      when: current_image.stdout is defined and current_image.stdout != "none"
-
     - name: Pull latest Docker image
       docker_image:
         name: "{{ image_name }}"

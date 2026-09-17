@@ -18,7 +18,6 @@ pipeline {
         stage('Install & Test') {
             steps {
                 script {
-                    // הורדה והפעלה מקומית של Node.js בתוך ה-Workspace (ללא פגיעה באבטחת המערכת או צורך ב-Root)
                     sh '''
                         export NODE_VERSION=18.16.0
                         export PATH=$WORKSPACE/node-v$NODE_VERSION-linux-x64/bin:$PATH
@@ -59,7 +58,6 @@ pipeline {
                 expression { env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master' }
             }
             steps {
-                // הרצת ה-Playbook של Ansible לעדכון אוטומטי של השרת
                 sh "ansible-playbook -i ansible/inventory ansible/deploy.yml --extra-vars 'image_tag=${env.BUILD_NUMBER}'"
             }
         }
@@ -76,10 +74,33 @@ pipeline {
                     ).trim()
                     echo "Health check response: ${response}"
 
-                    if (!response.contains('"status":"healthy"')) {
-                        error("Health check failed! App is not healthy on target server.")
+                    if (response.contains('"status":"healthy"')) {
+                        // Health check passed - record this build number as the last known good version
+                        sh "ssh cs.humble-chainsaw-4j9rjw79575wf7pp5.main 'echo ${env.BUILD_NUMBER} > /tmp/last_good_build.txt'"
+                        echo "Health check passed - build ${env.BUILD_NUMBER} recorded as last known good version."
+                    } else {
+                        echo "Health check FAILED! Attempting automatic rollback..."
+
+                        def lastGoodBuild = sh(
+                            script: "ssh cs.humble-chainsaw-4j9rjw79575wf7pp5.main 'cat /tmp/last_good_build.txt 2>/dev/null || echo none'",
+                            returnStdout: true
+                        ).trim()
+
+                        if (lastGoodBuild != "none" && lastGoodBuild != "") {
+                            echo "Rolling back to last known good build: ${lastGoodBuild}"
+                            sh "ansible-playbook -i ansible/inventory ansible/deploy.yml --extra-vars 'image_tag=${lastGoodBuild}'"
+
+                            def rollbackCheck = sh(
+                                script: "ssh cs.humble-chainsaw-4j9rjw79575wf7pp5.main curl -s http://localhost:3000/health",
+                                returnStdout: true
+                            ).trim()
+                            echo "Post-rollback health check: ${rollbackCheck}"
+
+                            error("Health check failed for build ${env.BUILD_NUMBER}. Automatically rolled back to build ${lastGoodBuild}.")
+                        } else {
+                            error("Health check failed for build ${env.BUILD_NUMBER}. No previous good build found - manual intervention required!")
+                        }
                     }
-                    echo "Health check passed - application is running correctly."
                 }
             }
         }
