@@ -75,7 +75,6 @@ pipeline {
                     echo "Health check response: ${response}"
 
                     if (response.contains('"status":"healthy"')) {
-                        // Health check passed - record this build number as the last known good version
                         sh "ssh cs.humble-chainsaw-4j9rjw79575wf7pp5.main 'echo ${env.BUILD_NUMBER} > /tmp/last_good_build.txt'"
                         echo "Health check passed - build ${env.BUILD_NUMBER} recorded as last known good version."
                     } else {
