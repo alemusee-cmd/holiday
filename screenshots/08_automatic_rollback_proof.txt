@@ -1,0 +1,66 @@
+[Pipeline] stage
+[Pipeline] { (Health Check)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sh
++ ssh cs.humble-chainsaw-4j9rjw79575wf7pp5.main curl -s http://localhost:3000/health-fake-endpoint
+[Pipeline] echo
+Health check response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /health-fake-endpoint</pre>
+</body>
+</html>
+[Pipeline] echo
+Health check FAILED! Attempting automatic rollback...
+[Pipeline] sh
++ ssh cs.humble-chainsaw-4j9rjw79575wf7pp5.main cat /tmp/last_good_build.txt 2>/dev/null || echo none
+[Pipeline] echo
+Rolling back to last known good build: 25
+[Pipeline] sh
++ ansible-playbook -i ansible/inventory ansible/deploy.yml --extra-vars image_tag=25
+
+PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [cs.humble-chainsaw-4j9rjw79575wf7pp5.main]
+
+TASK [Pull latest Docker image] ************************************************
+ok: [cs.humble-chainsaw-4j9rjw79575wf7pp5.main]
+
+TASK [Stop and remove old container if it exists] ******************************
+changed: [cs.humble-chainsaw-4j9rjw79575wf7pp5.main]
+
+TASK [Run new container] *******************************************************
+changed: [cs.humble-chainsaw-4j9rjw79575wf7pp5.main]
+
+PLAY RECAP *********************************************************************
+cs.humble-chainsaw-4j9rjw79575wf7pp5.main : ok=4    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+[Pipeline] sh
++ ssh cs.humble-chainsaw-4j9rjw79575wf7pp5.main curl -s http://localhost:3000/health
+[Pipeline] echo
+Post-rollback health check: {"status":"healthy","service":"holiday-events"}
+[Pipeline] error
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] echo
+Pipeline failed on branch test/rollback-simulation
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+ERROR: Health check failed for build 3. Automatically rolled back to build 25.
+
+Finished: FAILURE
